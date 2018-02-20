@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -ex
 
+# this is required to allow the creation of v1 image for the tests
+export RBD_FORCE_ALLOW_V1="1"
+
 # this should be run from the src directory in the ceph.git
 
 source $(dirname $0)/detect-build-env-vars.sh
@@ -13,5 +16,7 @@ for i in 0 1 61 109 127
 do
     RBD_FEATURES=$i unittest_librbd
 done
+
+unset RBD_FORCE_ALLOW_V1
 
 echo OK
