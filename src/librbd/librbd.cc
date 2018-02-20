@@ -1738,8 +1738,9 @@ namespace librbd {
     return r;
   }
 
-  ssize_t Image::write(uint64_t ofs, size_t len, bufferlist& bl)
+  ssize_t Image::write(uint64_t ofs, size_t len, bufferlist& bl)   //TODO
   {
+    //TODO
     ImageCtx *ictx = (ImageCtx *)ctx;
     tracepoint(librbd, write_enter, ictx, ictx->name.c_str(), ictx->snap_name.c_str(), ictx->read_only, ofs, len, bl.length() < len ? NULL : bl.c_str());
     if (bl.length() < len) {
