@@ -1110,6 +1110,30 @@ namespace librbd {
     return 0;
   }
 
+  int Image::get_access_timestamp(struct timespec *timestamp)
+  {
+    ImageCtx *ictx = (ImageCtx *)ctx;
+    tracepoint(librbd, get_access_timestamp_enter, ictx, ictx->name.c_str(),
+               ictx->read_only);
+    utime_t time = ictx->get_access_timestamp();
+    time.to_timespec(timestamp);
+    tracepoint(librbd, get_access_timestamp_exit, 0, timestamp);
+    return 0;
+  }
+
+  int Image::get_last_modified_timestamp(struct timespec *timestamp)
+  {
+    ImageCtx *ictx = (ImageCtx *)ctx;
+    tracepoint(librbd, get_last_modified_timestamp_enter, ictx, ictx->name.c_str(),
+               ictx->read_only);
+    utime_t time = ictx->get_last_modified_timestamp();
+    time.to_timespec(timestamp);
+    tracepoint(librbd, get_last_modified_timestamp_exit, 0, timestamp);
+    return 0;
+  }
+
+
+
   int Image::overlap(uint64_t *overlap)
   {
     ImageCtx *ictx = (ImageCtx *)ctx;
