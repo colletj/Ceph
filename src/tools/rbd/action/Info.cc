@@ -11,6 +11,9 @@
 #include <iostream>
 #include <boost/program_options.hpp>
 
+
+#include "common/Clock.h"
+
 namespace rbd {
 namespace action {
 namespace info {
@@ -189,6 +192,28 @@ static int do_show_info(librados::IoCtx &io_ctx, librbd::Image& image,
         create_timestamp_str.length() - 1);
   }
 
+  struct timespec access_timestamp;
+  image.get_access_timestamp(&access_timestamp);
+
+  string access_timestamp_str = " ";
+  if(access_timestamp.tv_sec != 0) {
+    time_t timestamp = access_timestamp.tv_sec;
+    access_timestamp_str = ctime(&timestamp);
+    access_timestamp_str = access_timestamp_str.substr(0,
+        access_timestamp_str.length() - 1);
+  }
+
+  struct timespec modified_timestamp;
+  image.get_modified_timestamp(&modified_timestamp);
+
+  string modified_timestamp_str = " ";
+  if(modified_timestamp.tv_sec != 0) {
+    time_t timestamp = modified_timestamp.tv_sec;
+    modified_timestamp_str = ctime(&timestamp);
+    modified_timestamp_str = modified_timestamp_str.substr(0,
+        modified_timestamp_str.length() - 1);
+  }
+
   if (f) {
     f->open_object_section("image");
     f->dump_string("name", imgname);
@@ -245,6 +270,25 @@ static int do_show_info(librados::IoCtx &io_ctx, librbd::Image& image,
                 << std::endl;
     }
   }
+
+  if (!access_timestamp_str.empty()) {
+    if (f) {
+      f->dump_string("access_timestamp", access_timestamp_str);
+    } else {
+      std::cout << "\taccess_timestamp: " << access_timestamp_str
+                << std::endl;
+    }
+  }
+
+  if (!modified_timestamp_str.empty()) {
+    if (f) {
+      f->dump_string("modified_timestamp", modified_timestamp_str);
+    } else {
+      std::cout << "\tmodified_timestamp: " << modified_timestamp_str
+                << std::endl;
+    }
+  }
+
 
   // snapshot info, if present
   if (!snapname.empty()) {

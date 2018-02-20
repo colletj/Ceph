@@ -1120,6 +1120,44 @@ namespace librbd {
     return 0;
   }
 
+  int Image::get_access_timestamp(struct timespec *timestamp)
+  {
+    ImageCtx *ictx = (ImageCtx *)ctx;
+//    tracepoint(librbd, get_access_timestamp_enter, ictx, ictx->name.c_str(),
+//               ictx->read_only);
+    utime_t time = ictx->get_access_timestamp();
+    time.to_timespec(timestamp);
+//    tracepoint(librbd, get_access_timestamp_exit, 0, timestamp);
+    return 0;
+  }
+
+  int Image::get_modified_timestamp(struct timespec *timestamp)
+  {
+    ImageCtx *ictx = (ImageCtx *)ctx;
+//    tracepoint(librbd, get_modified_timestamp_enter, ictx, ictx->name.c_str(),
+//               ictx->read_only);
+    utime_t time = ictx->get_modified_timestamp();
+    time.to_timespec(timestamp);
+//    tracepoint(librbd, get_modified_timestamp_exit, 0, timestamp);
+    return 0;
+  }
+
+
+  void Image::set_access_timestamp(const struct timespec timestamp) //consider const ?
+  {
+    ImageCtx *ictx = (ImageCtx *)ctx;
+    utime_t ts(timestamp);
+    ictx->set_access_timestamp(ts);
+  }
+
+  void Image::set_modified_timestamp(const struct timespec timestamp) //consider const ?
+  {
+    ImageCtx *ictx = (ImageCtx *)ctx;
+    utime_t ts(timestamp);
+    ictx->set_modified_timestamp(ts);
+  }
+
+
   int Image::overlap(uint64_t *overlap)
   {
     ImageCtx *ictx = (ImageCtx *)ctx;
@@ -1687,6 +1725,11 @@ namespace librbd {
     tracepoint(librbd, read_enter, ictx, ictx->name.c_str(), ictx->snap_name.c_str(), ictx->read_only, ofs, len);
     bufferptr ptr(len);
     bl.push_back(std::move(ptr));
+    
+    utime_t ts = ceph_clock_now();
+    if( ts.sec() - ictx->get_access_timestamp().sec() >= 60 )
+        cls_client::set_access_timestamp(&ictx->md_ctx, ictx->header_oid, ts);
+
     int r = ictx->io_work_queue->read(ofs, len, io::ReadResult{&bl}, 0);
     tracepoint(librbd, read_exit, r);
     return r;
@@ -1699,6 +1742,11 @@ namespace librbd {
 		ictx->read_only, ofs, len, op_flags);
     bufferptr ptr(len);
     bl.push_back(std::move(ptr));
+    
+    utime_t ts = ceph_clock_now();
+    if( ts.sec() - ictx->get_access_timestamp().sec() >= 60 )
+        cls_client::set_access_timestamp(&ictx->md_ctx, ictx->header_oid, ts);
+
     int r = ictx->io_work_queue->read(ofs, len, io::ReadResult{&bl}, op_flags);
     tracepoint(librbd, read_exit, r);
     return r;
@@ -1710,6 +1758,11 @@ namespace librbd {
   {
     ImageCtx *ictx = (ImageCtx *)ctx;
     tracepoint(librbd, read_iterate_enter, ictx, ictx->name.c_str(), ictx->snap_name.c_str(), ictx->read_only, ofs, len);
+    
+    utime_t ts = ceph_clock_now();
+    if( ts.sec() - ictx->get_access_timestamp().sec() >= 60 )
+        cls_client::set_access_timestamp(&ictx->md_ctx, ictx->header_oid, ts);
+
     int64_t r = librbd::read_iterate(ictx, ofs, len, cb, arg);
     tracepoint(librbd, read_iterate_exit, r);
     return r;
@@ -1721,6 +1774,11 @@ namespace librbd {
   {
     ImageCtx *ictx = (ImageCtx *)ctx;
     tracepoint(librbd, read_iterate2_enter, ictx, ictx->name.c_str(), ictx->snap_name.c_str(), ictx->read_only, ofs, len);
+    
+    utime_t ts = ceph_clock_now();
+    if( ts.sec() - ictx->get_access_timestamp().sec() >= 60 )
+        cls_client::set_access_timestamp(&ictx->md_ctx, ictx->header_oid, ts);
+
     int64_t r = librbd::read_iterate(ictx, ofs, len, cb, arg);
     if (r > 0)
       r = 0;
@@ -1762,7 +1820,7 @@ namespace librbd {
     return r;
   }
 
-  ssize_t Image::write(uint64_t ofs, size_t len, bufferlist& bl)
+  ssize_t Image::write(uint64_t ofs, size_t len, bufferlist& bl) 
   {
     ImageCtx *ictx = (ImageCtx *)ctx;
     tracepoint(librbd, write_enter, ictx, ictx->name.c_str(), ictx->snap_name.c_str(), ictx->read_only, ofs, len, bl.length() < len ? NULL : bl.c_str());
@@ -1770,6 +1828,11 @@ namespace librbd {
       tracepoint(librbd, write_exit, -EINVAL);
       return -EINVAL;
     }
+
+    utime_t ts = ceph_clock_now();
+    if( ts.sec() - ictx->get_modified_timestamp().sec() >= 60 )
+        cls_client::set_modified_timestamp(&ictx->md_ctx, ictx->header_oid, ts);
+
     int r = ictx->io_work_queue->write(ofs, len, bufferlist{bl}, 0);
     tracepoint(librbd, write_exit, r);
     return r;
@@ -1784,6 +1847,11 @@ namespace librbd {
       tracepoint(librbd, write_exit, -EINVAL);
       return -EINVAL;
     }
+
+    utime_t ts = ceph_clock_now();
+    if( ts.sec() - ictx->get_modified_timestamp().sec() >= 60 )
+        cls_client::set_modified_timestamp(&ictx->md_ctx, ictx->header_oid, ts);
+
     int r = ictx->io_work_queue->write(ofs, len, bufferlist{bl}, op_flags);
     tracepoint(librbd, write_exit, r);
     return r;
@@ -1821,6 +1889,10 @@ namespace librbd {
       return r;
     }
 
+    utime_t ts = ceph_clock_now();
+    if( ts.sec() - ictx->get_modified_timestamp().sec() >= 60 )
+        cls_client::set_modified_timestamp(&ictx->md_ctx, ictx->header_oid, ts);
+
     int r = ictx->io_work_queue->writesame(ofs, len, bufferlist{bl}, op_flags);
     tracepoint(librbd, writesame_exit, r);
     return r;
@@ -1841,6 +1913,10 @@ namespace librbd {
       return -EINVAL;
     }
 
+    utime_t ts = ceph_clock_now();
+    if( ts.sec() - ictx->get_modified_timestamp().sec() >= 60 )
+        cls_client::set_modified_timestamp(&ictx->md_ctx, ictx->header_oid, ts);
+
     int r = ictx->io_work_queue->compare_and_write(ofs, len, bufferlist{cmp_bl},
                                                    bufferlist{bl}, mismatch_off,
                                                    op_flags);
@@ -1849,6 +1925,7 @@ namespace librbd {
 
     return r;
   }
+
   int Image::aio_write(uint64_t off, size_t len, bufferlist& bl,
 		       RBD::AioCompletion *c)
   {
@@ -1860,6 +1937,11 @@ namespace librbd {
     }
     ictx->io_work_queue->aio_write(get_aio_completion(c), off, len,
                                    bufferlist{bl}, 0);
+
+    utime_t ts = ceph_clock_now();
+    if( ts.sec() - ictx->get_modified_timestamp().sec() >= 60 )
+        cls_client::set_modified_timestamp(&ictx->md_ctx, ictx->header_oid, ts);
+
     tracepoint(librbd, aio_write_exit, 0);
     return 0;
   }
@@ -1876,6 +1958,11 @@ namespace librbd {
     }
     ictx->io_work_queue->aio_write(get_aio_completion(c), off, len,
                                    bufferlist{bl}, op_flags);
+
+    utime_t ts = ceph_clock_now();
+    if( ts.sec() - ictx->get_modified_timestamp().sec() >= 60 )
+        cls_client::set_modified_timestamp(&ictx->md_ctx, ictx->header_oid, ts);
+
     tracepoint(librbd, aio_write_exit, 0);
     return 0;
   }
@@ -1896,6 +1983,11 @@ namespace librbd {
     tracepoint(librbd, aio_read_enter, ictx, ictx->name.c_str(), ictx->snap_name.c_str(), ictx->read_only, off, len, bl.c_str(), c->pc);
     ldout(ictx->cct, 10) << "Image::aio_read() buf=" << (void *)bl.c_str() << "~"
 			 << (void *)(bl.c_str() + len - 1) << dendl;
+
+    utime_t ts = ceph_clock_now();
+    if( ts.sec() - ictx->get_access_timestamp().sec() >= 60 )
+        cls_client::set_access_timestamp(&ictx->md_ctx, ictx->header_oid, ts);
+
     ictx->io_work_queue->aio_read(get_aio_completion(c), off, len,
                                   io::ReadResult{&bl}, 0);
     tracepoint(librbd, aio_read_exit, 0);
@@ -1910,6 +2002,11 @@ namespace librbd {
 		ictx->read_only, off, len, bl.c_str(), c->pc, op_flags);
     ldout(ictx->cct, 10) << "Image::aio_read() buf=" << (void *)bl.c_str() << "~"
 			 << (void *)(bl.c_str() + len - 1) << dendl;
+
+    utime_t ts = ceph_clock_now();
+    if( ts.sec() - ictx->get_access_timestamp().sec() >= 60 )
+        cls_client::set_access_timestamp(&ictx->md_ctx, ictx->header_oid, ts);
+
     ictx->io_work_queue->aio_read(get_aio_completion(c), off, len,
                                   io::ReadResult{&bl}, op_flags);
     tracepoint(librbd, aio_read_exit, 0);
@@ -1974,6 +2071,7 @@ namespace librbd {
       tracepoint(librbd, compare_and_write_exit, -EINVAL);
       return -EINVAL;
     }
+
 
     ictx->io_work_queue->aio_compare_and_write(get_aio_completion(c), off, len,
                                                bufferlist{cmp_bl}, bufferlist{bl},
@@ -3153,6 +3251,31 @@ extern "C"  int rbd_get_create_timestamp(rbd_image_t image,
   tracepoint(librbd, get_create_timestamp_exit, 0, timestamp);
   return 0;
 }
+
+extern "C"  int rbd_get_access_timestamp(rbd_image_t image,
+                                           struct timespec *timestamp)
+{
+  librbd::ImageCtx *ictx = (librbd::ImageCtx *)image;
+//  tracepoint(librbd, get_access_timestamp_enter, ictx, ictx->name.c_str(),
+//             ictx->read_only);
+  utime_t time = ictx->get_access_timestamp();
+  time.to_timespec(timestamp);
+//  tracepoint(librbd, get_access_timestamp_exit, 0, timestamp);
+  return 0;
+}
+
+extern "C"  int rbd_get_modified_timestamp(rbd_image_t image,
+                                           struct timespec *timestamp)
+{
+  librbd::ImageCtx *ictx = (librbd::ImageCtx *)image;
+//  tracepoint(librbd, get_create_modified_enter, ictx, ictx->name.c_str(),
+//             ictx->read_only);
+  utime_t time = ictx->get_modified_timestamp();
+  time.to_timespec(timestamp);
+//  tracepoint(librbd, get_modified_timestamp_exit, 0, timestamp);
+  return 0;
+}
+
 
 extern "C" int rbd_get_overlap(rbd_image_t image, uint64_t *overlap)
 {
