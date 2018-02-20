@@ -562,6 +562,26 @@ struct C_InvalidateCache : public Context {
     return create_timestamp;
   }
 
+  utime_t ImageCtx::get_access_timestamp() const
+  {
+    return access_timestamp;
+  }
+
+  utime_t ImageCtx::get_modified_timestamp() const
+  {
+    return modified_timestamp;
+  }
+
+  void ImageCtx::set_access_timestamp(const utime_t at)
+  {
+    access_timestamp = at;
+  }
+
+  void ImageCtx::set_modified_timestamp(const utime_t at)
+  {
+    modified_timestamp = at;
+  }
+
   int ImageCtx::is_snap_protected(snap_t in_snap_id,
 				  bool *is_protected) const
   {
