@@ -14,4 +14,6 @@ do
     RBD_FEATURES=$i unittest_librbd
 done
 
+unset RBD_FORCE_ALLOW_V1
+
 echo OK
