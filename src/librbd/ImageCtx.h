@@ -269,6 +269,9 @@ namespace librbd {
     utime_t get_access_timestamp() const;
     utime_t get_last_modified_timestamp() const;
 
+    void set_access_timestamp(const utime_t at); 
+    void set_last_modified_timestamp(const utime_t at); 
+
     void add_snap(cls::rbd::SnapshotNamespace in_snap_namespace,
 		  std::string in_snap_name,
 		  librados::snap_t id,

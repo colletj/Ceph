@@ -342,6 +342,11 @@ public:
   uint64_t get_stripe_count() const;
 
   int get_create_timestamp(struct timespec *timestamp);
+  int get_access_timestamp(struct timespec *timestamp);
+  int get_last_modified_timestamp(struct timespec *timestamp);
+
+  void set_access_timestamp(const struct timespec timestamp);
+  void set_last_modified_timestamp(const struct timespec timestamp);
 
   int flatten();
   int flatten_with_progress(ProgressContext &prog_ctx);
