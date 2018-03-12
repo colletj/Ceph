@@ -1121,14 +1121,14 @@ namespace librbd {
     return 0;
   }
 
-  int Image::get_last_modified_timestamp(struct timespec *timestamp)
+  int Image::get_modified_timestamp(struct timespec *timestamp)
   {
     ImageCtx *ictx = (ImageCtx *)ctx;
-//    tracepoint(librbd, get_last_modified_timestamp_enter, ictx, ictx->name.c_str(),
+//    tracepoint(librbd, get_modified_timestamp_enter, ictx, ictx->name.c_str(),
 //               ictx->read_only);
-    utime_t time = ictx->get_last_modified_timestamp();
+    utime_t time = ictx->get_modified_timestamp();
     time.to_timespec(timestamp);
-//    tracepoint(librbd, get_last_modified_timestamp_exit, 0, timestamp);
+//    tracepoint(librbd, get_modified_timestamp_exit, 0, timestamp);
     return 0;
   }
 
@@ -1140,11 +1140,11 @@ namespace librbd {
     ictx->set_access_timestamp(ts);
   }
 
-  void Image::set_last_modified_timestamp(const struct timespec timestamp) //consider const ?
+  void Image::set_modified_timestamp(const struct timespec timestamp) //consider const ?
   {
     ImageCtx *ictx = (ImageCtx *)ctx;
     utime_t ts(timestamp);
-    ictx->set_last_modified_timestamp(ts);
+    ictx->set_modified_timestamp(ts);
   }
 
 
@@ -1891,7 +1891,7 @@ namespace librbd {
     ictx->io_work_queue->aio_write(get_aio_completion(c), off, len,
                                    bufferlist{bl}, op_flags);
     
-    cls_client::set_last_modified_timestamp(&ictx->md_ctx, ictx->header_oid, ceph_clock_now());
+    cls_client::set_modified_timestamp(&ictx->md_ctx, ictx->header_oid, ceph_clock_now());
 
     tracepoint(librbd, aio_write_exit, 0);
     return 0;
@@ -3163,15 +3163,15 @@ extern "C"  int rbd_get_access_timestamp(rbd_image_t image,
   return 0;
 }
 
-extern "C"  int rbd_get_last_modified_timestamp(rbd_image_t image,
+extern "C"  int rbd_get_modified_timestamp(rbd_image_t image,
                                            struct timespec *timestamp)
 {
   librbd::ImageCtx *ictx = (librbd::ImageCtx *)image;
-//  tracepoint(librbd, get_create_last_modified_enter, ictx, ictx->name.c_str(),
+//  tracepoint(librbd, get_create_modified_enter, ictx, ictx->name.c_str(),
 //             ictx->read_only);
-  utime_t time = ictx->get_last_modified_timestamp();
+  utime_t time = ictx->get_modified_timestamp();
   time.to_timespec(timestamp);
-//  tracepoint(librbd, get_last_modified_timestamp_exit, 0, timestamp);
+//  tracepoint(librbd, get_modified_timestamp_exit, 0, timestamp);
   return 0;
 }
 

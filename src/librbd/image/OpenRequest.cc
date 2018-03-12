@@ -390,25 +390,25 @@ template<typename I>
 }
 
 template<typename I>
- void OpenRequest<I>::set_last_modified_timestamp() {
+ void OpenRequest<I>::set_modified_timestamp() {
    
    librados::ObjectWriteOperation op;
-   cls_client::set_last_modified_timestamp(&op, ceph_clock_now());
+   cls_client::set_modified_timestamp(&op, ceph_clock_now());
  
    using klass = OpenRequest<I>;
    librados::AioCompletion *comp =
-     create_rados_callback<klass, &klass::handle_set_last_modified_timestamp>(this);
+     create_rados_callback<klass, &klass::handle_set_modified_timestamp>(this);
    m_image_ctx->md_ctx.aio_operate(m_image_ctx->header_oid, comp, &op);
        //  m_image_ctx->md_ctx.aio_operate(m_image_ctx->header_oid, comp, &op,
    comp->release();
  }
  
  template<typename I>
- void OpenRequest<I>::handle_set_last_modified_timestamp(int r) {
+ void OpenRequest<I>::handle_set_modified_timestamp(int r) {
    CephContext *cct = m_image_ctx->cct;
    ldout(cct, 10) << this << " " << __func__ << ": r=" << r << dendl;
    if (r < 0) {
-     lderr(cct) << "error setting last_modified_timestamp: "
+     lderr(cct) << "error setting modified_timestamp: "
                   << cpp_strerror(r) << dendl;
      return;
    }
@@ -452,22 +452,22 @@ Context *OpenRequest<I>::handle_v2_get_access_timestamp(int *result) {
     return nullptr;
   }
 
-  send_v2_get_last_modified_timestamp();
+  send_v2_get_modified_timestamp();
   return nullptr;
 }
 
 
 template <typename I>
-void OpenRequest<I>::send_v2_get_last_modified_timestamp() {
+void OpenRequest<I>::send_v2_get_modified_timestamp() {
   CephContext *cct = m_image_ctx->cct;
   ldout(cct, 10) << this << " " << __func__ << dendl;
 
   librados::ObjectReadOperation op;
-  cls_client::get_last_modified_timestamp_start(&op);
+  cls_client::get_modified_timestamp_start(&op);
 
   using klass = OpenRequest<I>;
   librados::AioCompletion *comp = create_rados_callback<
-    klass, &klass::handle_v2_get_last_modified_timestamp>(this);
+    klass, &klass::handle_v2_get_modified_timestamp>(this);
   m_out_bl.clear();
   m_image_ctx->md_ctx.aio_operate(m_image_ctx->header_oid, comp, &op,
                                   &m_out_bl);
@@ -475,17 +475,17 @@ void OpenRequest<I>::send_v2_get_last_modified_timestamp() {
 }
 
 template <typename I>
-Context *OpenRequest<I>::handle_v2_get_last_modified_timestamp(int *result) {
+Context *OpenRequest<I>::handle_v2_get_modified_timestamp(int *result) {
   CephContext *cct = m_image_ctx->cct;
   ldout(cct, 10) << this << " " << __func__ << ": r=" << *result << dendl;
 
   if (*result == 0) {
     bufferlist::iterator it = m_out_bl.begin();
-    *result = cls_client::get_last_modified_timestamp_finish(&it,
-        &m_image_ctx->last_modified_timestamp);
+    *result = cls_client::get_modified_timestamp_finish(&it,
+        &m_image_ctx->modified_timestamp);
   }
   if (*result < 0 && *result != -EOPNOTSUPP) {
-    lderr(cct) << "failed to retrieve last_modified_timestamp: "
+    lderr(cct) << "failed to retrieve modified_timestamp: "
                << cpp_strerror(*result)
                << dendl;
     send_close_image(*result);

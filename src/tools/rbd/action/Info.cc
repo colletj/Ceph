@@ -192,15 +192,15 @@ static int do_show_info(librados::IoCtx &io_ctx, librbd::Image& image,
         access_timestamp_str.length() - 1);
   }
 
-  struct timespec last_modified_timestamp;
-  image.get_last_modified_timestamp(&last_modified_timestamp);
+  struct timespec modified_timestamp;
+  image.get_modified_timestamp(&modified_timestamp);
 
-  string last_modified_timestamp_str = " ";
-  if(last_modified_timestamp.tv_sec != 0) {
-    time_t timestamp = last_modified_timestamp.tv_sec;
-    last_modified_timestamp_str = ctime(&timestamp);
-    last_modified_timestamp_str = last_modified_timestamp_str.substr(0,
-        last_modified_timestamp_str.length() - 1);
+  string modified_timestamp_str = " ";
+  if(modified_timestamp.tv_sec != 0) {
+    time_t timestamp = modified_timestamp.tv_sec;
+    modified_timestamp_str = ctime(&timestamp);
+    modified_timestamp_str = modified_timestamp_str.substr(0,
+        modified_timestamp_str.length() - 1);
   }
 
   if (f) {
@@ -269,11 +269,11 @@ static int do_show_info(librados::IoCtx &io_ctx, librbd::Image& image,
     }
   }
 
-  if (!last_modified_timestamp_str.empty()) {
+  if (!modified_timestamp_str.empty()) {
     if (f) {
-      f->dump_string("last_modified_timestamp", last_modified_timestamp_str);
+      f->dump_string("modified_timestamp", modified_timestamp_str);
     } else {
-      std::cout << "\tlast_modified_timestamp: " << last_modified_timestamp_str
+      std::cout << "\tmodified_timestamp: " << modified_timestamp_str
                 << std::endl;
     }
   }

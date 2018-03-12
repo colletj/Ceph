@@ -344,11 +344,11 @@ int create(cls_method_context_t hctx, bufferlist *in, bufferlist *out)
   bufferlist snap_seqbl;
   bufferlist create_timestampbl;
   bufferlist access_timestampbl;
-  bufferlist last_modified_timestampbl;
+  bufferlist modified_timestampbl;
   uint64_t snap_seq = 0;
   utime_t create_timestamp = ceph_clock_now();
   utime_t access_timestamp = ceph_clock_now();
-  utime_t last_modified_timestamp = ceph_clock_now();
+  utime_t modified_timestamp = ceph_clock_now();
   encode(size, sizebl);
   encode(order, orderbl);
   encode(features, featuresbl);
@@ -356,7 +356,7 @@ int create(cls_method_context_t hctx, bufferlist *in, bufferlist *out)
   encode(snap_seq, snap_seqbl);
   encode(create_timestamp, create_timestampbl);
   encode(access_timestamp, access_timestampbl);
-  encode(last_modified_timestamp, last_modified_timestampbl);
+  encode(modified_timestamp, modified_timestampbl);
 
   map<string, bufferlist> omap_vals;
   omap_vals["size"] = sizebl;
@@ -366,7 +366,7 @@ int create(cls_method_context_t hctx, bufferlist *in, bufferlist *out)
   omap_vals["snap_seq"] = snap_seqbl;
   omap_vals["create_timestamp"] = create_timestampbl;
   omap_vals["access_timestamp"] = access_timestampbl;
-  omap_vals["last_modified_timestamp"] = last_modified_timestampbl ;
+  omap_vals["modified_timestamp"] = modified_timestampbl ;
 
   if (features & RBD_FEATURE_DATA_POOL) {
     if (data_pool_id == -1) {
@@ -944,13 +944,13 @@ int get_access_timestamp(cls_method_context_t hctx, bufferlist *in, bufferlist *
   return 0;
 }
 
-int get_last_modified_timestamp(cls_method_context_t hctx, bufferlist *in, bufferlist *out)
+int get_modified_timestamp(cls_method_context_t hctx, bufferlist *in, bufferlist *out)
 {
-  CLS_LOG(20, "get_last_modified_timestamp");
+  CLS_LOG(20, "get_modified_timestamp");
 
   utime_t timestamp;
   bufferlist bl;
-  int r = cls_cxx_map_get_val(hctx, "last_modified_timestamp", &bl);
+  int r = cls_cxx_map_get_val(hctx, "modified_timestamp", &bl);
   if (r < 0) {
     if (r != -ENOENT) {
       CLS_ERR("error reading access_timestamp: %s", cpp_strerror(r).c_str());
@@ -961,7 +961,7 @@ int get_last_modified_timestamp(cls_method_context_t hctx, bufferlist *in, buffe
       bufferlist::iterator it = bl.begin();
       decode(timestamp, it);
     } catch (const buffer::error &err) {
-      CLS_ERR("could not decode last_modified_timestamp");
+      CLS_ERR("could not decode modified_timestamp");
       return -EIO;
     }
   }
@@ -2299,7 +2299,7 @@ int set_access_timestamp(cls_method_context_t hctx, bufferlist *in, bufferlist *
    return 0;
 }
 
-int set_last_modified_timestamp(cls_method_context_t hctx, bufferlist *in, bufferlist *out)
+int set_modified_timestamp(cls_method_context_t hctx, bufferlist *in, bufferlist *out)
 {
    int r = check_exists(hctx);
 
@@ -2318,7 +2318,7 @@ int set_last_modified_timestamp(cls_method_context_t hctx, bufferlist *in, buffe
    encode(test_timestamp,timestampbl);
    
    map<string, bufferlist> omap_vals;
-   omap_vals["last_modified_timestamp"] = timestampbl;
+   omap_vals["modified_timestamp"] = timestampbl;
    
    r = cls_cxx_map_set_vals(hctx, &omap_vals);
    if (r < 0)
@@ -6163,7 +6163,7 @@ CLS_INIT(rbd)
   cls_method_handle_t h_set_stripe_unit_count;
   cls_method_handle_t h_get_create_timestamp;
   cls_method_handle_t h_get_access_timestamp;
-  cls_method_handle_t h_get_last_modified_timestamp;
+  cls_method_handle_t h_get_modified_timestamp;
   cls_method_handle_t h_get_flags;
   cls_method_handle_t h_set_flags;
   cls_method_handle_t h_op_features_get;
@@ -6186,7 +6186,7 @@ CLS_INIT(rbd)
   cls_method_handle_t h_copyup;
   cls_method_handle_t h_get_id;
   cls_method_handle_t h_set_id;
-  cls_method_handle_t h_set_last_modified_timestamp;
+  cls_method_handle_t h_set_modified_timestamp;
   cls_method_handle_t h_set_access_timestamp;
   cls_method_handle_t h_dir_get_id;
   cls_method_handle_t h_dir_get_name;
@@ -6335,9 +6335,9 @@ CLS_INIT(rbd)
   cls_register_cxx_method(h_class, "get_access_timestamp",
                           CLS_METHOD_RD,
                           get_access_timestamp, &h_get_access_timestamp);
-  cls_register_cxx_method(h_class, "get_last_modified_timestamp",
+  cls_register_cxx_method(h_class, "get_modified_timestamp",
                           CLS_METHOD_RD,
-                          get_last_modified_timestamp, &h_get_last_modified_timestamp);
+                          get_modified_timestamp, &h_get_modified_timestamp);
   cls_register_cxx_method(h_class, "get_flags",
                           CLS_METHOD_RD,
                           get_flags, &h_get_flags);
@@ -6377,9 +6377,9 @@ CLS_INIT(rbd)
                           CLS_METHOD_RD,
                           children_list, &h_children_list);
 
-  cls_register_cxx_method(h_class, "set_last_modified_timestamp",
+  cls_register_cxx_method(h_class, "set_modified_timestamp",
 	            		  CLS_METHOD_WR,
-                          set_last_modified_timestamp, &h_set_last_modified_timestamp);
+                          set_modified_timestamp, &h_set_modified_timestamp);
 
   cls_register_cxx_method(h_class, "set_access_timestamp",
 	            		  CLS_METHOD_WR,

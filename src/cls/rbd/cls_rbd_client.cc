@@ -1045,19 +1045,19 @@ namespace librbd {
       return ioctx->operate(oid, &op);
     }
 
-    void set_last_modified_timestamp(librados::ObjectWriteOperation *op, 
+    void set_modified_timestamp(librados::ObjectWriteOperation *op, 
                                      const utime_t ts)
     {
         bufferlist bl;
         encode(ts, bl);
-        op->exec("rbd","set_last_modified_timestamp",bl);
+        op->exec("rbd","set_modified_timestamp",bl);
     }
 
-    int set_last_modified_timestamp(librados::IoCtx *ioctx, const std::string &oid,
+    int set_modified_timestamp(librados::IoCtx *ioctx, const std::string &oid,
                                     utime_t ts)
     {
         librados::ObjectWriteOperation op;
-        set_last_modified_timestamp(&op, ts);
+        set_modified_timestamp(&op, ts);
         return ioctx->operate(oid, &op);
     }
 
@@ -1142,12 +1142,12 @@ namespace librbd {
       return get_access_timestamp_finish(&it, timestamp);
     }
 
-    void get_last_modified_timestamp_start(librados::ObjectReadOperation *op) {
+    void get_modified_timestamp_start(librados::ObjectReadOperation *op) {
       bufferlist empty_bl;
-      op->exec("rbd", "get_last_modified_timestamp", empty_bl);
+      op->exec("rbd", "get_modified_timestamp", empty_bl);
     }
 
-    int get_last_modified_timestamp_finish(bufferlist::iterator *it,
+    int get_modified_timestamp_finish(bufferlist::iterator *it,
                                     utime_t *timestamp) {
       assert(timestamp);
       
@@ -1159,11 +1159,11 @@ namespace librbd {
       return 0;
     }
 
-    int get_last_modified_timestamp(librados::IoCtx *ioctx, const std::string &oid,
+    int get_modified_timestamp(librados::IoCtx *ioctx, const std::string &oid,
                              utime_t *timestamp)
     {
       librados::ObjectReadOperation op;
-      get_last_modified_timestamp_start(&op);
+      get_modified_timestamp_start(&op);
       bufferlist out_bl;
       int r = ioctx->operate(oid, &op, &out_bl);
       if (r < 0) {
@@ -1171,7 +1171,7 @@ namespace librbd {
       }
 
       bufferlist::iterator it = out_bl.begin();
-      return get_last_modified_timestamp_finish(&it, timestamp);
+      return get_modified_timestamp_finish(&it, timestamp);
     }
 
 
