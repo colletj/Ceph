@@ -1890,8 +1890,10 @@ namespace librbd {
     }
     ictx->io_work_queue->aio_write(get_aio_completion(c), off, len,
                                    bufferlist{bl}, op_flags);
-    
-    cls_client::set_modified_timestamp(&ictx->md_ctx, ictx->header_oid, ceph_clock_now());
+
+    utime_t ts = ceph_clock_now();
+    if(ts.sec() - ictx->get_modified_timestamp().sec() >= 60 )
+        cls_client::set_modified_timestamp(&ictx->md_ctx, ictx->header_oid, ts);
 
     tracepoint(librbd, aio_write_exit, 0);
     return 0;
