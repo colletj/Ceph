@@ -276,7 +276,8 @@ void Shell::get_global_options(po::options_description *opts) {
     ("secret", po::value<at::Secret>(), "path to secret key (deprecated)")
     ("keyfile,K", po::value<std::string>(), "path to secret key")
     ("keyring,k", po::value<std::string>(), "path to keyring")
-    ("rbd-mtime-period", po::value<uint64_t>(), "RBD timestamp refresh period");
+    ("rbd-atime-period", po::value<uint64_t>(), "RBD access timestamp refresh period")
+    ("rbd-mtime-period", po::value<uint64_t>(), "RBD modified timestamp refresh period");
 }
 
 void Shell::print_help() {
