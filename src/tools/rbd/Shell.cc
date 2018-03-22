@@ -275,7 +275,8 @@ void Shell::get_global_options(po::options_description *opts) {
     ("mon_host,m", po::value<std::string>(), "monitor host")
     ("secret", po::value<at::Secret>(), "path to secret key (deprecated)")
     ("keyfile,K", po::value<std::string>(), "path to secret key")
-    ("keyring,k", po::value<std::string>(), "path to keyring");
+    ("keyring,k", po::value<std::string>(), "path to keyring")
+    ("rbd-mtime-period", po::value<uint64_t>(), "RBD timestamp refresh period");
 }
 
 void Shell::print_help() {

@@ -356,6 +356,7 @@ int do_bench(librbd::Image& image, io_type_t io_type,
 void add_bench_common_options(po::options_description *positional,
 			      po::options_description *options) {
   at::add_image_spec_options(positional, options, at::ARGUMENT_MODIFIER_NONE);
+  at::add_rbd_mtime_period_option(options);
 
   options->add_options()
     ("io-size", po::value<Size>(), "IO size (in B/K/M/G/T) [default: 4K]")
@@ -447,6 +448,15 @@ int bench_execute(const po::variables_map &vm, io_type_t bench_io_type) {
       return -EINVAL;
     }
   }
+
+  uint64_t rbd_mtime_period;
+  if(vm.count(at::RBD_MTIME_PERIOD)) {
+    rbd_mtime_period = vm[at::RBD_MTIME_PERIOD].as<uint64_t>();
+  } else {
+    rbd_mtime_period = 60; // Defaults to 60s
+  }
+
+  std::cout << "[JC] rbd_mtime_period is : " << rbd_mtime_period << std::endl;
 
   librados::Rados rados;
   librados::IoCtx io_ctx;

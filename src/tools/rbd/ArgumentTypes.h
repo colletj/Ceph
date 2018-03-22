@@ -84,6 +84,8 @@ static const std::string NO_ERROR("no-error");
 
 static const std::string LIMIT("limit");
 
+static const std::string RBD_MTIME_PERIOD("rbd-mtime-period");
+
 static const std::set<std::string> SWITCH_ARGUMENTS = {
   WHOLE_OBJECT, NO_PROGRESS, PRETTY_FORMAT, VERBOSE, NO_ERROR};
 
@@ -193,6 +195,8 @@ void add_path_options(boost::program_options::options_description *pos,
                       const std::string &description);
 
 void add_limit_option(boost::program_options::options_description *opt);
+
+void add_rbd_mtime_period_option(boost::program_options::options_description *opt);
 
 void add_no_progress_option(boost::program_options::options_description *opt);
 

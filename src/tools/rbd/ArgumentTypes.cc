@@ -335,6 +335,13 @@ void add_limit_option(po::options_description *opt) {
     (LIMIT.c_str(), po::value<uint64_t>(), description.c_str());
 }
 
+void add_rbd_mtime_period_option(po::options_description *opt) {
+  std::string description = "RBD modified timestamp refresh interval";
+
+  opt->add_options()
+    (RBD_MTIME_PERIOD.c_str(), po::value<uint64_t>(), description.c_str());
+}
+
 void add_no_progress_option(boost::program_options::options_description *opt) {
   opt->add_options()
     (NO_PROGRESS.c_str(), po::bool_switch(), "disable progress output");
