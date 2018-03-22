@@ -463,8 +463,6 @@ int bench_execute(const po::variables_map &vm, io_type_t bench_io_type) {
   } else {
     rbd_mtime_period = 60; // Defaults to 60s
   }
-  std::cout << "[JC] rbd_atime_period is : " << rbd_atime_period << std::endl;
-  std::cout << "[JC] rbd_mtime_period is : " << rbd_mtime_period << std::endl;
 
   librados::Rados rados;
   librados::IoCtx io_ctx;
@@ -474,6 +472,15 @@ int bench_execute(const po::variables_map &vm, io_type_t bench_io_type) {
   if (r < 0) {
     return r;
   }
+
+  std::cout << "[JC] rbd_atime_period is : " << rbd_atime_period << " / " << image.get_atime_period() <<std::endl;
+  std::cout << "[JC] rbd_mtime_period is : " << rbd_mtime_period << " / " << image.get_mtime_period() <<std::endl;
+
+  image.set_mtime_period(rbd_mtime_period);
+  image.set_atime_period(rbd_atime_period);
+
+  std::cout << "[JC] rbd_atime_period is : " << rbd_atime_period << " / " << image.get_atime_period() <<std::endl;
+  std::cout << "[JC] rbd_mtime_period is : " << rbd_mtime_period << " / " << image.get_mtime_period() <<std::endl;
 
   r = do_bench(image, bench_io_type, bench_io_size, bench_io_threads,
 		     bench_bytes, bench_random, bench_read_proportion);

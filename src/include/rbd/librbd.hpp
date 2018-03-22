@@ -341,12 +341,19 @@ public:
   uint64_t get_stripe_unit() const;
   uint64_t get_stripe_count() const;
 
+  /* timestamps */
   int get_create_timestamp(struct timespec *timestamp);
   int get_access_timestamp(struct timespec *timestamp);
   int get_modified_timestamp(struct timespec *timestamp);
 
   void set_access_timestamp(const struct timespec timestamp);
   void set_modified_timestamp(const struct timespec timestamp);
+
+  uint64_t get_atime_period() const;
+  uint64_t get_mtime_period() const;
+
+  void set_atime_period(const uint64_t period);  
+  void set_mtime_period(const uint64_t period);
 
   int flatten();
   int flatten_with_progress(ProgressContext &prog_ctx);

@@ -1147,6 +1147,35 @@ namespace librbd {
     ictx->set_modified_timestamp(ts);
   }
 
+  uint64_t Image::get_atime_period() const
+  {
+    ImageCtx *ictx = (ImageCtx *)ctx;
+//    tracepoint(librbd, get_stripe_count_enter, ictx, ictx->name.c_str(), ictx->snap_name.c_str(), ictx->read_only);
+    uint64_t atime_p = ictx->get_atime_period();
+//    tracepoint(librbd, get_stripe_count_exit, 0, stripe_count);
+    return atime_p;
+  }
+
+  uint64_t Image::get_mtime_period() const
+  {
+    ImageCtx *ictx = (ImageCtx *)ctx;
+//    tracepoint(librbd, get_stripe_count_enter, ictx, ictx->name.c_str(), ictx->snap_name.c_str(), ictx->read_only);
+    uint64_t mtime_p = ictx->get_mtime_period();
+//    tracepoint(librbd, get_stripe_count_exit, 0, stripe_count);
+    return mtime_p;
+  }
+
+  void Image::set_atime_period(const uint64_t period) //consider const ?
+  {
+    ImageCtx *ictx = (ImageCtx *)ctx;
+    ictx->set_atime_period(period);
+  }
+
+  void Image::set_mtime_period(const uint64_t period) //consider const ?
+  {
+    ImageCtx *ictx = (ImageCtx *)ctx;
+    ictx->set_mtime_period(period);
+  }
 
   int Image::overlap(uint64_t *overlap)
   {
@@ -1701,9 +1730,10 @@ namespace librbd {
     tracepoint(librbd, read_enter, ictx, ictx->name.c_str(), ictx->snap_name.c_str(), ictx->read_only, ofs, len);
     bufferptr ptr(len);
     bl.push_back(std::move(ptr));
-    
+   
+
     utime_t ts = ceph_clock_now();
-    if( ts.sec() - ictx->get_access_timestamp().sec() >= 60 )
+    if( ts.sec() - ictx->get_access_timestamp().sec() >= get_atime_period() )
         cls_client::set_access_timestamp(&ictx->md_ctx, ictx->header_oid, ts);
 
     int r = ictx->io_work_queue->read(ofs, len, io::ReadResult{&bl}, 0);
@@ -1720,7 +1750,7 @@ namespace librbd {
     bl.push_back(std::move(ptr));
     
     utime_t ts = ceph_clock_now();
-    if( ts.sec() - ictx->get_access_timestamp().sec() >= 60 )
+    if( ts.sec() - ictx->get_access_timestamp().sec() >= get_atime_period() )
         cls_client::set_access_timestamp(&ictx->md_ctx, ictx->header_oid, ts);
 
     int r = ictx->io_work_queue->read(ofs, len, io::ReadResult{&bl}, op_flags);
@@ -1736,7 +1766,7 @@ namespace librbd {
     tracepoint(librbd, read_iterate_enter, ictx, ictx->name.c_str(), ictx->snap_name.c_str(), ictx->read_only, ofs, len);
     
     utime_t ts = ceph_clock_now();
-    if( ts.sec() - ictx->get_access_timestamp().sec() >= 60 )
+    if( ts.sec() - ictx->get_access_timestamp().sec() >= get_atime_period() )
         cls_client::set_access_timestamp(&ictx->md_ctx, ictx->header_oid, ts);
 
     int64_t r = librbd::read_iterate(ictx, ofs, len, cb, arg);
@@ -1752,7 +1782,7 @@ namespace librbd {
     tracepoint(librbd, read_iterate2_enter, ictx, ictx->name.c_str(), ictx->snap_name.c_str(), ictx->read_only, ofs, len);
     
     utime_t ts = ceph_clock_now();
-    if( ts.sec() - ictx->get_access_timestamp().sec() >= 60 )
+    if( ts.sec() - ictx->get_access_timestamp().sec() >= get_atime_period() )
         cls_client::set_access_timestamp(&ictx->md_ctx, ictx->header_oid, ts);
 
     int64_t r = librbd::read_iterate(ictx, ofs, len, cb, arg);
@@ -1806,7 +1836,7 @@ namespace librbd {
     }
 
     utime_t ts = ceph_clock_now();
-    if( ts.sec() - ictx->get_modified_timestamp().sec() >= 60 )
+    if( ts.sec() - ictx->get_modified_timestamp().sec() >= get_mtime_period() )
         cls_client::set_modified_timestamp(&ictx->md_ctx, ictx->header_oid, ts);
 
     int r = ictx->io_work_queue->write(ofs, len, bufferlist{bl}, 0);
@@ -1825,7 +1855,7 @@ namespace librbd {
     }
 
     utime_t ts = ceph_clock_now();
-    if( ts.sec() - ictx->get_modified_timestamp().sec() >= 60 )
+    if( ts.sec() - ictx->get_modified_timestamp().sec() >= get_mtime_period() )
         cls_client::set_modified_timestamp(&ictx->md_ctx, ictx->header_oid, ts);
 
     int r = ictx->io_work_queue->write(ofs, len, bufferlist{bl}, op_flags);
@@ -1865,7 +1895,7 @@ namespace librbd {
     }
 
     utime_t ts = ceph_clock_now();
-    if( ts.sec() - ictx->get_modified_timestamp().sec() >= 60 )
+    if( ts.sec() - ictx->get_modified_timestamp().sec() >= get_mtime_period() )
         cls_client::set_modified_timestamp(&ictx->md_ctx, ictx->header_oid, ts);
 
     int r = ictx->io_work_queue->writesame(ofs, len, bufferlist{bl}, op_flags);
@@ -1889,7 +1919,7 @@ namespace librbd {
     }
 
     utime_t ts = ceph_clock_now();
-    if( ts.sec() - ictx->get_modified_timestamp().sec() >= 60 )
+    if( ts.sec() - ictx->get_modified_timestamp().sec() >= get_mtime_period() )
         cls_client::set_modified_timestamp(&ictx->md_ctx, ictx->header_oid, ts);
 
     int r = ictx->io_work_queue->compare_and_write(ofs, len, bufferlist{cmp_bl},
@@ -1914,7 +1944,7 @@ namespace librbd {
                                    bufferlist{bl}, 0);
 
     utime_t ts = ceph_clock_now();
-    if( ts.sec() - ictx->get_modified_timestamp().sec() >= 60 )
+    if( ts.sec() - ictx->get_modified_timestamp().sec() >= get_mtime_period() )
         cls_client::set_modified_timestamp(&ictx->md_ctx, ictx->header_oid, ts);
 
     tracepoint(librbd, aio_write_exit, 0);
@@ -1935,7 +1965,7 @@ namespace librbd {
                                    bufferlist{bl}, op_flags);
 
     utime_t ts = ceph_clock_now();
-    if( ts.sec() - ictx->get_modified_timestamp().sec() >= 60 )
+    if( ts.sec() - ictx->get_modified_timestamp().sec() >= get_mtime_period() )
         cls_client::set_modified_timestamp(&ictx->md_ctx, ictx->header_oid, ts);
 
     tracepoint(librbd, aio_write_exit, 0);
@@ -1960,7 +1990,7 @@ namespace librbd {
 			 << (void *)(bl.c_str() + len - 1) << dendl;
 
     utime_t ts = ceph_clock_now();
-    if( ts.sec() - ictx->get_access_timestamp().sec() >= 60 )
+    if( ts.sec() - ictx->get_access_timestamp().sec() >= get_atime_period() )
         cls_client::set_access_timestamp(&ictx->md_ctx, ictx->header_oid, ts);
 
     ictx->io_work_queue->aio_read(get_aio_completion(c), off, len,
@@ -1979,7 +2009,7 @@ namespace librbd {
 			 << (void *)(bl.c_str() + len - 1) << dendl;
 
     utime_t ts = ceph_clock_now();
-    if( ts.sec() - ictx->get_access_timestamp().sec() >= 60 )
+    if( ts.sec() - ictx->get_access_timestamp().sec() >= get_atime_period() )
         cls_client::set_access_timestamp(&ictx->md_ctx, ictx->header_oid, ts);
 
     ictx->io_work_queue->aio_read(get_aio_completion(c), off, len,

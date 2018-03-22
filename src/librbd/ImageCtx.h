@@ -135,6 +135,9 @@ namespace librbd {
     utime_t access_timestamp;
     utime_t modified_timestamp;
 
+    uint64_t atime_period=60;
+    uint64_t mtime_period=60;
+
     file_layout_t layout;
 
     cache::ImageCache *image_cache = nullptr;
@@ -271,6 +274,12 @@ namespace librbd {
 
     void set_access_timestamp(const utime_t at); 
     void set_modified_timestamp(const utime_t at); 
+
+    uint64_t get_atime_period() const;
+    uint64_t get_mtime_period() const;
+
+    void set_atime_period(const uint64_t p); 
+    void set_mtime_period(const uint64_t p); 
 
     void add_snap(cls::rbd::SnapshotNamespace in_snap_namespace,
 		  std::string in_snap_name,

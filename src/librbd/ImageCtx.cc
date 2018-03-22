@@ -582,6 +582,26 @@ struct C_InvalidateCache : public Context {
     modified_timestamp = at;
   }
 
+  uint64_t ImageCtx::get_atime_period() const
+  {
+    return atime_period;
+  }
+
+  uint64_t ImageCtx::get_mtime_period() const
+  {
+    return mtime_period;
+  }
+
+  void ImageCtx::set_atime_period(const uint64_t p)
+  {
+    atime_period = p;
+  }
+
+  void ImageCtx::set_mtime_period(const uint64_t p)
+  {
+    mtime_period = p;
+  }
+
   int ImageCtx::is_snap_protected(snap_t in_snap_id,
 				  bool *is_protected) const
   {
