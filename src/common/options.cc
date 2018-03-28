@@ -6058,6 +6058,16 @@ static std::vector<Option> get_rbd_options() {
     Option("rbd_qos_iops_limit", Option::TYPE_UINT, Option::LEVEL_ADVANCED)
     .set_default(0)
     .set_description("the desired limit of IO operations per second"),
+
+    Option("rbd_mtime_update_interval", Option::TYPE_UINT, Option::LEVEL_ADVANCED)
+    .set_default(60)
+    .set_min(0)
+    .set_description("RBD Image modified timestamp refresh interval"),
+
+    Option("rbd_atime_update_interval", Option::TYPE_UINT, Option::LEVEL_ADVANCED)
+    .set_default(60)
+    .set_min(0)
+    .set_description("RBD Image access timestamp refresh interval"),
   });
 }
 
