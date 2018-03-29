@@ -86,6 +86,12 @@ ImageRequest<I>* ImageRequest<I>::create_read_request(
     I &image_ctx, AioCompletion *aio_comp, Extents &&image_extents,
     ReadResult &&read_result, int op_flags,
     const ZTracer::Trace &parent_trace) {
+  // TODO atime throttle computed here
+  utime_t ts = ceph_clock_now();
+  if( (static_cast<uint64_t>(ts.sec()) >= image_ctx.atime_update_interval + image_ctx.get_access_timestamp().sec()) && image_ctx.atime_update_interval ) {
+      cls_client::set_access_timestamp(&image_ctx.md_ctx, image_ctx.header_oid);
+      image_ctx.set_access_timestamp(ts);
+  }
   return new ImageReadRequest<I>(image_ctx, aio_comp,
                                  std::move(image_extents),
                                  std::move(read_result), op_flags,
@@ -96,6 +102,13 @@ template <typename I>
 ImageRequest<I>* ImageRequest<I>::create_write_request(
     I &image_ctx, AioCompletion *aio_comp, Extents &&image_extents,
     bufferlist &&bl, int op_flags, const ZTracer::Trace &parent_trace) {
+  // TODO mtime throttle computed here
+  utime_t ts = ceph_clock_now();
+  if( (static_cast<uint64_t>(ts.sec()) >= image_ctx.mtime_update_interval + image_ctx.get_modify_timestamp().sec()) && image_ctx.mtime_update_interval ) {
+      cls_client::set_modify_timestamp(&image_ctx.md_ctx, image_ctx.header_oid);
+      image_ctx.set_modify_timestamp(ts);
+  }
+
   return new ImageWriteRequest<I>(image_ctx, aio_comp, std::move(image_extents),
                                   std::move(bl), op_flags, parent_trace);
 }
