@@ -121,10 +121,14 @@ whenever it is run. grep -v to ignore it, but still work on other distros.
   \top_features:  (esc)
   \tflags:  (esc)
   \tcreate_timestamp:* (glob)
+  \taccess_timestamp:* (glob)
+  \tmodified_timestamp:* (glob)
   $ rbd info bar --format json | python -mjson.tool | sed 's/,$/, /'
   {
       "block_name_prefix": "rbd_data.*",  (glob)
       "create_timestamp": "*",  (glob)
+      "access_timestamp": "*",  (glob)
+      "modified_timestamp": "*",  (glob)
       "features": [
           "layering", 
           "exclusive-lock", 
@@ -160,6 +164,8 @@ whenever it is run. grep -v to ignore it, but still work on other distros.
     <op_features></op_features>
     <flags></flags>
     <create_timestamp>*</create_timestamp> (glob)
+    <access_timestamp>*</access_timestamp> (glob)
+    <modified_timestamp>*</modified_timestamp> (glob)
   </image>
   $ rbd info bar@snap
   rbd image 'bar':
@@ -171,11 +177,15 @@ whenever it is run. grep -v to ignore it, but still work on other distros.
   \top_features:  (esc)
   \tflags:  (esc)
   \tcreate_timestamp:* (glob)
+  \taccess_timestamp:* (glob)
+  \tmodified_timestamp:* (glob)
   \tprotected: True (esc)
   $ rbd info bar@snap --format json | python -mjson.tool | sed 's/,$/, /'
   {
       "block_name_prefix": "rbd_data.*",  (glob)
       "create_timestamp": "*",  (glob)
+      "access_timestamp": "*",  (glob)
+      "modified_timestamp": "*",  (glob)
       "features": [
           "layering", 
           "exclusive-lock", 
@@ -212,6 +222,8 @@ whenever it is run. grep -v to ignore it, but still work on other distros.
     <op_features></op_features>
     <flags></flags>
     <create_timestamp>*</create_timestamp> (glob)
+    <access_timestamp>*</access_timestamp> (glob)
+    <modified_timestamp>*</modified_timestamp> (glob)
     <protected>true</protected>
   </image>
   $ rbd info bar@snap2
@@ -224,11 +236,15 @@ whenever it is run. grep -v to ignore it, but still work on other distros.
   \top_features:  (esc)
   \tflags:  (esc)
   \tcreate_timestamp:* (glob)
+  \taccess_timestamp:* (glob)
+  \tmodified_timestamp:* (glob)
   \tprotected: False (esc)
   $ rbd info bar@snap2 --format json | python -mjson.tool | sed 's/,$/, /'
   {
       "block_name_prefix": "rbd_data.*",  (glob)
       "create_timestamp": "*",  (glob)
+      "access_timestamp": "*",  (glob)
+      "modified_timestamp": "*",  (glob)
       "features": [
           "layering", 
           "exclusive-lock", 
@@ -265,6 +281,8 @@ whenever it is run. grep -v to ignore it, but still work on other distros.
     <op_features></op_features>
     <flags></flags>
     <create_timestamp>*</create_timestamp> (glob)
+    <access_timestamp>*</access_timestamp> (glob)
+    <modified_timestamp>*</modified_timestamp> (glob)
     <protected>false</protected>
   </image>
   $ rbd info baz
@@ -277,10 +295,14 @@ whenever it is run. grep -v to ignore it, but still work on other distros.
   \top_features:  (esc)
   \tflags:  (esc)
   \tcreate_timestamp:* (glob)
+  \taccess_timestamp:* (glob)
+  \tmodified_timestamp:* (glob)
   $ rbd info baz --format json | python -mjson.tool | sed 's/,$/, /'
   {
       "block_name_prefix": "rbd_data.*",  (glob)
       "create_timestamp": "*",  (glob)
+      "access_timestamp": "*",  (glob)
+      "modified_timestamp": "*",  (glob)
       "features": [
           "layering"
       ], 
@@ -308,6 +330,8 @@ whenever it is run. grep -v to ignore it, but still work on other distros.
     <op_features></op_features>
     <flags></flags>
     <create_timestamp>*</create_timestamp> (glob)
+    <access_timestamp>*</access_timestamp> (glob)
+    <modified_timestamp>*</modified_timestamp> (glob)
   </image>
   $ rbd info quux
   rbd image 'quux':
@@ -345,10 +369,14 @@ whenever it is run. grep -v to ignore it, but still work on other distros.
   \top_features:  (esc)
   \tflags:  (esc)
   \tcreate_timestamp:* (glob)
+  \taccess_timestamp:* (glob)
+  \tmodified_timestamp:* (glob)
   $ rbd info rbd_other/child --format json | python -mjson.tool | sed 's/,$/, /'
   {
       "block_name_prefix": "rbd_data.*",  (glob)
       "create_timestamp": "*",  (glob)
+      "access_timestamp": "*",  (glob)
+      "modified_timestamp": "*",  (glob)
       "features": [
           "layering", 
           "exclusive-lock", 
@@ -382,6 +410,8 @@ whenever it is run. grep -v to ignore it, but still work on other distros.
     <op_features></op_features>
     <flags></flags>
     <create_timestamp>*</create_timestamp> (glob)
+    <access_timestamp>*</access_timestamp> (glob)
+    <modified_timestamp>*</modified_timestamp> (glob)
   </image>
   $ rbd info rbd_other/child@snap
   rbd image 'child':
@@ -393,6 +423,8 @@ whenever it is run. grep -v to ignore it, but still work on other distros.
   \top_features:  (esc)
   \tflags:  (esc)
   \tcreate_timestamp:* (glob)
+  \taccess_timestamp:* (glob)
+  \tmodified_timestamp:* (glob)
   \tprotected: False (esc)
   \tparent: rbd/bar@snap (esc)
   \toverlap: 512 MB (esc)
@@ -400,6 +432,8 @@ whenever it is run. grep -v to ignore it, but still work on other distros.
   {
       "block_name_prefix": "rbd_data.*",  (glob)
       "create_timestamp": "*",  (glob)
+      "access_timestamp": "*",  (glob)
+      "modified_timestamp": "*",  (glob)
       "features": [
           "layering", 
           "exclusive-lock", 
@@ -440,6 +474,8 @@ whenever it is run. grep -v to ignore it, but still work on other distros.
     <op_features></op_features>
     <flags></flags>
     <create_timestamp>*</create_timestamp> (glob)
+    <access_timestamp>*</access_timestamp> (glob)
+    <modified_timestamp>*</modified_timestamp> (glob)
     <protected>false</protected>
     <parent>
       <pool>rbd</pool>
@@ -458,10 +494,14 @@ whenever it is run. grep -v to ignore it, but still work on other distros.
   \top_features:  (esc)
   \tflags:  (esc)
   \tcreate_timestamp:* (glob)
+  \taccess_timestamp:* (glob)
+  \tmodified_timestamp:* (glob)
   $ rbd info rbd_other/deep-flatten-child --format json | python -mjson.tool | sed 's/,$/, /'
   {
       "block_name_prefix": "rbd_data.*",  (glob)
       "create_timestamp": "*",  (glob)
+      "access_timestamp": "*",  (glob)
+      "modified_timestamp": "*",  (glob)
       "features": [
           "layering", 
           "exclusive-lock", 
@@ -497,6 +537,8 @@ whenever it is run. grep -v to ignore it, but still work on other distros.
     <op_features></op_features>
     <flags></flags>
     <create_timestamp>*</create_timestamp> (glob)
+    <access_timestamp>*</access_timestamp> (glob)
+    <modified_timestamp>*</modified_timestamp> (glob)
   </image>
   $ rbd info rbd_other/deep-flatten-child@snap
   rbd image 'deep-flatten-child':
@@ -508,11 +550,15 @@ whenever it is run. grep -v to ignore it, but still work on other distros.
   \top_features:  (esc)
   \tflags:  (esc)
   \tcreate_timestamp:* (glob)
+  \taccess_timestamp:* (glob)
+  \tmodified_timestamp:* (glob)
   \tprotected: False (esc)
   $ rbd info rbd_other/deep-flatten-child@snap --format json | python -mjson.tool | sed 's/,$/, /'
   {
       "block_name_prefix": "rbd_data.*",  (glob)
       "create_timestamp": "*",  (glob)
+      "access_timestamp": "*",  (glob)
+      "modified_timestamp": "*",  (glob)
       "features": [
           "layering", 
           "exclusive-lock", 
@@ -549,6 +595,8 @@ whenever it is run. grep -v to ignore it, but still work on other distros.
     <op_features></op_features>
     <flags></flags>
     <create_timestamp>*</create_timestamp> (glob)
+    <access_timestamp>*</access_timestamp> (glob)
+    <modified_timestamp>*</modified_timestamp> (glob)
     <protected>false</protected>
   </image>
   $ rbd list
