@@ -23,6 +23,42 @@
 namespace librbd {
 namespace io {
 
+namespace {
+
+template <typename I>
+struct C_UpdateTimestamp : public Context {
+public:
+  I* m_image_ctx;
+  AioCompletion* m_aio_comp;
+  bool modify; //if modify set to 'true', modify timestamp is updatedm access timestamp otherwise
+
+  C_UpdateTimestamp(I* ictx, AioCompletion *c, bool m)  
+    : m_image_ctx(ictx), m_aio_comp(c), modify(m) {
+    m_aio_comp->add_request();
+  }
+
+  void send() {
+      // TODO uses a bool to select the timestamp to update
+  librados::ObjectWriteOperation op;
+  if(modify)
+    cls_client::set_modify_timestamp(&op);
+  else
+    cls_client::set_access_timestamp(&op);
+
+  librados::AioCompletion *comp = librbd::util::create_rados_callback(this);
+  int r = m_image_ctx->md_ctx.aio_operate(m_image_ctx->header_oid, comp, &op);
+  assert(r == 0);
+  comp->release();
+  }
+
+  void finish(int r) override {
+    // ignore errors updating timestamp
+    m_aio_comp->complete_request(0);
+  }
+};
+
+} // anonymous namespace
+
 using util::get_image_ctx;
 
 namespace {
@@ -315,7 +351,20 @@ void ImageReadRequest<I>::send_request() {
   for (auto &object_extent : object_extents) {
     request_count += object_extent.second.size();
   }
+  
+  utime_t ts = ceph_clock_now();
+  bool update_timestamp = (image_ctx.atime_update_interval && (static_cast<uint64_t>(ts.sec()) >= image_ctx.atime_update_interval + image_ctx.get_access_timestamp())) ? true : false; 
+
+  if(update_timestamp)
+      request_count++;
+ 
   aio_comp->set_request_count(request_count);
+
+  if(update_timestamp) {
+      auto update_ctx = new C_UpdateTimestamp<I>(&image_ctx, aio_comp, false);
+      update_ctx->send();
+      image_ctx.set_access_timestamp(ts);
+  }
 
   // issue the requests
   for (auto &object_extent : object_extents) {
@@ -401,8 +450,19 @@ void AbstractImageWriteRequest<I>::send_request() {
 
   if (!object_extents.empty()) {
     uint64_t journal_tid = 0;
+
+    utime_t ts = ceph_clock_now();
+    bool update_timestamp = (image_ctx.mtime_update_interval && (static_cast<uint64_t>(ts.sec()) >= image_ctx.mtime_update_interval + image_ctx.get_modify_timestamp())) ? true : false; 
+
     aio_comp->set_request_count(
-      object_extents.size() + get_object_cache_request_count(journaling));
+      update_timestamp ? object_extents.size() + get_object_cache_request_count(journaling) + 1
+                       : object_extents.size() + get_object_cache_request_count(journaling));
+
+    if(update_timestamp) {
+        auto update_ctx = new C_UpdateTimestamp<I>(&image_ctx, aio_comp, true);
+        update_ctx->send();
+        image_ctx.set_modify_timestamp(ts);
+    }
 
     ObjectRequests requests;
     send_object_requests(object_extents, snapc,

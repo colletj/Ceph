@@ -175,6 +175,13 @@ struct MockImageCtx {
   MOCK_CONST_METHOD2(is_snap_unprotected, int(librados::snap_t in_snap_id,
                                               bool *is_unprotected));
 
+  MOCK_CONST_METHOD0(get_create_timestamp, utime_t());
+  MOCK_CONST_METHOD0(get_access_timestamp, utime_t());
+  MOCK_CONST_METHOD0(get_modify_timestamp, utime_t());
+
+  MOCK_METHOD1(set_access_timestamp, void(const utime_t at));
+  MOCK_METHOD1(set_modify_timestamp, void(const utime_t at));
+
   MOCK_METHOD8(add_snap, void(cls::rbd::SnapshotNamespace in_snap_namespace,
 			      std::string in_snap_name,
 			      librados::snap_t id,
@@ -326,6 +333,8 @@ struct MockImageCtx {
   bool non_blocking_aio;
   bool blkin_trace_all;
   bool enable_alloc_hint;
+  uint64_t mtime_update_interval;
+  uint64_t atime_update_interval;
 };
 
 } // namespace librbd
