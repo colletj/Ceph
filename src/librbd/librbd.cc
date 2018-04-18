@@ -1123,40 +1123,24 @@ namespace librbd {
   int Image::get_access_timestamp(struct timespec *timestamp)
   {
     ImageCtx *ictx = (ImageCtx *)ctx;
-//    tracepoint(librbd, get_access_timestamp_enter, ictx, ictx->name.c_str(),
-//               ictx->read_only);
+    tracepoint(librbd, get_access_timestamp_enter, ictx, ictx->name.c_str(),
+               ictx->read_only);
     utime_t time = ictx->get_access_timestamp();
     time.to_timespec(timestamp);
-//    tracepoint(librbd, get_access_timestamp_exit, 0, timestamp);
+    tracepoint(librbd, get_access_timestamp_exit, 0, timestamp);
     return 0;
   }
 
-  int Image::get_modified_timestamp(struct timespec *timestamp)
+  int Image::get_modify_timestamp(struct timespec *timestamp)
   {
     ImageCtx *ictx = (ImageCtx *)ctx;
-//    tracepoint(librbd, get_modified_timestamp_enter, ictx, ictx->name.c_str(),
-//               ictx->read_only);
-    utime_t time = ictx->get_modified_timestamp();
+    tracepoint(librbd, get_modify_timestamp_enter, ictx, ictx->name.c_str(),
+               ictx->read_only);
+    utime_t time = ictx->get_modify_timestamp();
     time.to_timespec(timestamp);
-//    tracepoint(librbd, get_modified_timestamp_exit, 0, timestamp);
+    tracepoint(librbd, get_modify_timestamp_exit, 0, timestamp);
     return 0;
   }
-
-
-  void Image::set_access_timestamp(const struct timespec timestamp) //consider const ?
-  {
-    ImageCtx *ictx = (ImageCtx *)ctx;
-    utime_t ts(timestamp);
-    ictx->set_access_timestamp(ts);
-  }
-
-  void Image::set_modified_timestamp(const struct timespec timestamp) //consider const ?
-  {
-    ImageCtx *ictx = (ImageCtx *)ctx;
-    utime_t ts(timestamp);
-    ictx->set_modified_timestamp(ts);
-  }
-
 
   int Image::overlap(uint64_t *overlap)
   {
@@ -3280,23 +3264,23 @@ extern "C"  int rbd_get_access_timestamp(rbd_image_t image,
                                            struct timespec *timestamp)
 {
   librbd::ImageCtx *ictx = (librbd::ImageCtx *)image;
-//  tracepoint(librbd, get_access_timestamp_enter, ictx, ictx->name.c_str(),
-//             ictx->read_only);
+  tracepoint(librbd, get_access_timestamp_enter, ictx, ictx->name.c_str(),
+             ictx->read_only);
   utime_t time = ictx->get_access_timestamp();
   time.to_timespec(timestamp);
-//  tracepoint(librbd, get_access_timestamp_exit, 0, timestamp);
+  tracepoint(librbd, get_access_timestamp_exit, 0, timestamp);
   return 0;
 }
 
-extern "C"  int rbd_get_modified_timestamp(rbd_image_t image,
+extern "C"  int rbd_get_modify_timestamp(rbd_image_t image,
                                            struct timespec *timestamp)
 {
   librbd::ImageCtx *ictx = (librbd::ImageCtx *)image;
-//  tracepoint(librbd, get_create_modified_enter, ictx, ictx->name.c_str(),
-//             ictx->read_only);
-  utime_t time = ictx->get_modified_timestamp();
+  tracepoint(librbd, get_modify_timestamp_enter, ictx, ictx->name.c_str(),
+             ictx->read_only);
+  utime_t time = ictx->get_modify_timestamp();
   time.to_timespec(timestamp);
-//  tracepoint(librbd, get_modified_timestamp_exit, 0, timestamp);
+  tracepoint(librbd, get_modify_timestamp_exit, 0, timestamp);
   return 0;
 }
 
