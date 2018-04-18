@@ -219,25 +219,21 @@ namespace librbd {
 
     void get_access_timestamp_start(librados::ObjectReadOperation *op);
     int get_access_timestamp_finish(bufferlist::iterator *it,
-				utime_t *timestamp);
+				    utime_t *timestamp);
     int get_access_timestamp(librados::IoCtx *ioctx, const std::string &oid,
-			 utime_t *timestamp);
+			     utime_t *timestamp);
 
-    void get_modified_timestamp_start(librados::ObjectReadOperation *op);
-    int get_modified_timestamp_finish(bufferlist::iterator *it,
+    void get_modify_timestamp_start(librados::ObjectReadOperation *op);
+    int get_modify_timestamp_finish(bufferlist::iterator *it,
                                     utime_t *timestamp);
-    int get_modified_timestamp(librados::IoCtx *ioctx, const std::string &oid,
+    int get_modify_timestamp(librados::IoCtx *ioctx, const std::string &oid,
                              utime_t *timestamp);
 
-    void set_modified_timestamp(librados::ObjectWriteOperation *op, 
-                                     const utime_t ts);
-    int set_modified_timestamp(librados::IoCtx *ioctx, const std::string &oid,
-                                    utime_t ts);
+    void set_modify_timestamp(librados::ObjectWriteOperation *op);
+    int set_modify_timestamp(librados::IoCtx *ioctx, const std::string &oid);
 
-    void set_access_timestamp(librados::ObjectWriteOperation *op, 
-                                     const utime_t ts);
-    int set_access_timestamp(librados::IoCtx *ioctx, const std::string &oid,
-                                    utime_t ts);
+    void set_access_timestamp(librados::ObjectWriteOperation *op);
+    int set_access_timestamp(librados::IoCtx *ioctx, const std::string &oid);
 
     int metadata_list(librados::IoCtx *ioctx, const std::string &oid,
                       const std::string &start, uint64_t max_return,

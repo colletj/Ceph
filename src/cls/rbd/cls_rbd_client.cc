@@ -7,6 +7,7 @@
 #include "include/encoding.h"
 #include "include/rbd_types.h"
 #include "include/rados/librados.hpp"
+#include "common/Clock.h"
 
 #include <errno.h>
 
@@ -1045,35 +1046,33 @@ namespace librbd {
       return ioctx->operate(oid, &op);
     }
 
-    void set_modified_timestamp(librados::ObjectWriteOperation *op, 
-                                     const utime_t ts)
+    void set_modify_timestamp(librados::ObjectWriteOperation *op)
     {
         bufferlist bl;
+        utime_t ts = ceph_clock_now();
         encode(ts, bl);
-        op->exec("rbd","set_modified_timestamp",bl);
+        op->exec("rbd","set_modify_timestamp",bl);
     }
 
-    int set_modified_timestamp(librados::IoCtx *ioctx, const std::string &oid,
-                                    utime_t ts)
+    int set_modify_timestamp(librados::IoCtx *ioctx, const std::string &oid)
     {
         librados::ObjectWriteOperation op;
-        set_modified_timestamp(&op, ts);
+        set_modify_timestamp(&op);
         return ioctx->operate(oid, &op);
     }
 
-    void set_access_timestamp(librados::ObjectWriteOperation *op, 
-                                     const utime_t ts)
+    void set_access_timestamp(librados::ObjectWriteOperation *op)
     {
         bufferlist bl;
+        utime_t ts = ceph_clock_now();
         encode(ts, bl);
         op->exec("rbd","set_access_timestamp",bl);
     }
 
-    int set_access_timestamp(librados::IoCtx *ioctx, const std::string &oid,
-                                    utime_t ts)
+    int set_access_timestamp(librados::IoCtx *ioctx, const std::string &oid)
     {
         librados::ObjectWriteOperation op;
-        set_access_timestamp(&op, ts);
+        set_access_timestamp(&op);
         return ioctx->operate(oid, &op);
     }
 
@@ -1142,13 +1141,13 @@ namespace librbd {
       return get_access_timestamp_finish(&it, timestamp);
     }
 
-    void get_modified_timestamp_start(librados::ObjectReadOperation *op) {
+    void get_modify_timestamp_start(librados::ObjectReadOperation *op) {
       bufferlist empty_bl;
-      op->exec("rbd", "get_modified_timestamp", empty_bl);
+      op->exec("rbd", "get_modify_timestamp", empty_bl);
     }
 
-    int get_modified_timestamp_finish(bufferlist::iterator *it,
-                                    utime_t *timestamp) {
+    int get_modify_timestamp_finish(bufferlist::iterator *it,
+                                      utime_t *timestamp) {
       assert(timestamp);
       
       try {
@@ -1159,11 +1158,11 @@ namespace librbd {
       return 0;
     }
 
-    int get_modified_timestamp(librados::IoCtx *ioctx, const std::string &oid,
-                             utime_t *timestamp)
+    int get_modify_timestamp(librados::IoCtx *ioctx, const std::string &oid,
+                               utime_t *timestamp)
     {
       librados::ObjectReadOperation op;
-      get_modified_timestamp_start(&op);
+      get_modify_timestamp_start(&op);
       bufferlist out_bl;
       int r = ioctx->operate(oid, &op, &out_bl);
       if (r < 0) {
@@ -1171,11 +1170,8 @@ namespace librbd {
       }
 
       bufferlist::iterator it = out_bl.begin();
-      return get_modified_timestamp_finish(&it, timestamp);
+      return get_modify_timestamp_finish(&it, timestamp);
     }
-
-
-
 
     /************************ rbd_id object methods ************************/
 

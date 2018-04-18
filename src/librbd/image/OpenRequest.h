@@ -114,17 +114,11 @@ private:
   void send_v2_get_create_timestamp();
   Context *handle_v2_get_create_timestamp(int *result);
 
-  void set_modified_timestamp();
-  void handle_set_modified_timestamp(int result);
-
-  void set_access_timestamp();
-  void handle_set_access_timestamp(int result);
-
   void send_v2_get_access_timestamp();
   Context *handle_v2_get_access_timestamp(int *result);
 
-  void send_v2_get_modified_timestamp();
-  Context *handle_v2_get_modified_timestamp(int *result);
+  void send_v2_get_modify_timestamp();
+  Context *handle_v2_get_modify_timestamp(int *result);
 
   void send_v2_get_data_pool();
   Context *handle_v2_get_data_pool(int *result);
