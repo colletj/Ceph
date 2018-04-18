@@ -133,7 +133,7 @@ namespace librbd {
     bool operations_disabled = false;
     utime_t create_timestamp;
     utime_t access_timestamp;
-    utime_t modified_timestamp;
+    utime_t modify_timestamp;
 
     file_layout_t layout;
 
@@ -269,10 +269,10 @@ namespace librbd {
     uint64_t get_stripe_period() const;
     utime_t get_create_timestamp() const;
     utime_t get_access_timestamp() const;
-    utime_t get_modified_timestamp() const;
+    utime_t get_modify_timestamp() const;
 
-    void set_access_timestamp(const utime_t at); 
-    void set_modified_timestamp(const utime_t at); 
+    void set_access_timestamp(utime_t at);
+    void set_modify_timestamp(utime_t at);
 
     void add_snap(cls::rbd::SnapshotNamespace in_snap_namespace,
 		  std::string in_snap_name,
