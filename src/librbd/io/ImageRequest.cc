@@ -28,6 +28,41 @@ namespace io {
 
 using librbd::util::get_image_ctx;
 
+namespace {
+
+template <typename I>
+struct C_UpdateTimestamp : public Context {
+public:
+  I* m_image_ctx;
+  AioCompletion* m_aio_comp;
+  bool modify; //if modify set to 'true', modify timestamp is updated, access timestamp otherwise
+
+  C_UpdateTimestamp(I* ictx, AioCompletion *c, bool m)  
+    : m_image_ctx(ictx), m_aio_comp(c), modify(m) {
+    m_aio_comp->add_request();
+  }
+
+  void send() {
+    librados::ObjectWriteOperation op;
+    if(modify)
+      cls_client::set_modify_timestamp(&op);
+    else
+      cls_client::set_access_timestamp(&op);
+
+    librados::AioCompletion *comp = librbd::util::create_rados_callback(this);
+    int r = m_image_ctx->md_ctx.aio_operate(m_image_ctx->header_oid, comp, &op);
+    assert(r == 0);
+    comp->release();
+  }
+
+  void finish(int r) override {
+    // ignore errors updating timestamp
+    m_aio_comp->complete_request(0);
+  }
+};
+
+} // anonymous namespace
+
 template <typename I>
 void ImageRequest<I>::aio_read(I *ictx, AioCompletion *c,
                                Extents &&image_extents,
@@ -197,7 +232,20 @@ void ImageReadRequest<I>::send_request() {
   for (auto &object_extent : object_extents) {
     request_count += object_extent.second.size();
   }
+  
+  utime_t ts = ceph_clock_now();
+  bool update_timestamp = (image_ctx.atime_update_interval && (static_cast<uint64_t>(ts.sec()) >= image_ctx.atime_update_interval + image_ctx.get_access_timestamp())) ? true : false; 
+
+  if(update_timestamp)
+      request_count++;
+ 
   aio_comp->set_request_count(request_count);
+
+  if(update_timestamp) {
+      auto update_ctx = new C_UpdateTimestamp<I>(&image_ctx, aio_comp, false);
+      update_ctx->send();
+      image_ctx.set_access_timestamp(ts);
+  }
 
   // issue the requests
   for (auto &object_extent : object_extents) {
@@ -284,13 +332,25 @@ void AbstractImageWriteRequest<I>::send_request() {
 
   if (!object_extents.empty()) {
     uint64_t journal_tid = 0;
+
+    utime_t ts = ceph_clock_now();
+    bool update_timestamp = (image_ctx.mtime_update_interval && (static_cast<uint64_t>(ts.sec()) >= image_ctx.mtime_update_interval + image_ctx.get_modify_timestamp())) ? true : false; 
+
+    aio_comp->set_request_count(
+      update_timestamp ? object_extents.size() + 1 : object_extents.size());
+
+    if(update_timestamp) {
+        auto update_ctx = new C_UpdateTimestamp<I>(&image_ctx, aio_comp, true);
+        update_ctx->send();
+        image_ctx.set_modify_timestamp(ts);
+    }
+
     if (journaling) {
       // in-flight ops are flushed prior to closing the journal
       assert(image_ctx.journal != NULL);
       journal_tid = append_journal_event(m_synchronous);
     }
 
-    aio_comp->set_request_count(object_extents.size());
     send_object_requests(object_extents, snapc, journal_tid);
   } else {
     // no IO to perform -- fire completion
